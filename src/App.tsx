@@ -4,8 +4,38 @@ import "./index.css";
 
 import logo from "./logo.svg";
 import reactLogo from "./react.svg";
+import { useEffect, useState } from "react";
 
 export function App() {
+
+const[post, setPosts] = useState(null);
+const[postTitle, setPostTitle] = useState('');
+
+useEffect(()=>{
+fetch('/api/posts').then(res => res.json()).then(res => setPosts(res));
+},[])
+
+async function createPost() {
+  const data = {
+    title: postTitle
+  }
+  const res = await fetch('/api/post/create',{
+    method: 'POST',
+    headers:{
+      'Content-Type':'aplication/json',
+      'Aceept': 'aplication/json',
+    },
+    body: JSON.stringify(data),
+  });
+  if(!res.ok){
+  const errText =await res.text();
+  throw new Error(`HTTPS ${res.status}: ${errText}`);
+}
+return await res.json();
+}
+
+
+
   return (
     <div className="container mx-auto p-8 text-center relative z-10">
       <div className="flex justify-center items-center gap-8 mb-8">
@@ -32,6 +62,19 @@ export function App() {
           <APITester />
         </CardContent>
       </Card>
+      <div>
+      {post && post.map((post) => (
+        <div key={post.id}>
+          <p>{post.title}</p>
+        </div>
+      ))}
+
+      <div>
+        <input type="text" placeholder="Title" value={postTitle} onChange={(e) => setPostTitle(e.currentTarget.value)} />
+        <button onClick={() => createPost()}>Add</button>
+      </div>
+
+      </div>
     </div>
   );
 }
